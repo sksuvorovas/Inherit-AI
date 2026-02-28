@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import KanbanBoard from './components/KanbanBoard';
+import WorkstreamBoard from './components/WorkstreamBoard';
 import LawyerSearch from './components/LawyerSearch';
 import ListingGenerator from './components/ListingGenerator';
 import ContractWhisperer from './components/ContractWhisperer';
@@ -102,7 +102,10 @@ export default function App() {
                         <StatCard title="Status" value="Active Inheritance" icon={Layout} />
                         <StatCard title="Last Update" value="Just now" icon={Layout} />
                       </div>
-                      <KanbanBoard projectId={selectedProjectId} />
+                      <WorkstreamBoard 
+                        projectId={selectedProjectId} 
+                        onNavigate={(tab) => setActiveTab(tab)}
+                      />
                     </div>
                   ) : (
                     <div className="text-center py-20 bg-zinc-900/30 rounded-3xl border border-dashed border-zinc-800">

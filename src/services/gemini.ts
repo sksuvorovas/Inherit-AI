@@ -1,24 +1,41 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, FunctionDeclaration } from "@google/genai";
 import { Lawyer, ContractAnalysis } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+
+const tavilySearchTool: FunctionDeclaration = {
+  name: "tavily_search",
+  parameters: {
+    type: Type.OBJECT,
+    description: "Search the web using Tavily for high-quality, vetted legal information and lawyer details.",
+    properties: {
+      query: {
+        type: Type.STRING,
+        description: "The search query to perform.",
+      },
+    },
+    required: ["query"],
+  },
+};
 
 export const geminiService = {
   async findLawyers(jurisdiction: string, postalCode: string): Promise<Lawyer[]> {
     const model = "gemini-3-flash-preview";
     const prompt = `Find and vet top-rated local probate lawyers in ${jurisdiction}, specifically near postal code ${postalCode}. 
+    Use the tavily_search tool to crawl the web for the most up-to-date and vetted information.
+    
     Filter for lawyers who:
     - Have assisted over 100 clients (or are highly experienced)
     - Have cross-border specialty
     - Have a rating > 4.0
     
-    Return a list of 3 lawyers with their name, firm, rating, specialty, contact info, location, a brief description, and a pre-drafted inquiry email in the local language of ${jurisdiction}.`;
+    Return a list of 3 lawyers with their name, firm, rating, specialty, contact info, email address, location, a brief description, and a pre-drafted inquiry email in the local language of ${jurisdiction}.`;
 
     const response = await ai.models.generateContent({
       model,
       contents: prompt,
       config: {
-        tools: [{ googleSearch: {} }],
+        tools: [{ functionDeclarations: [tavilySearchTool] }],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
@@ -30,15 +47,78 @@ export const geminiService = {
               rating: { type: Type.NUMBER },
               specialty: { type: Type.STRING },
               contact: { type: Type.STRING },
+              email: { type: Type.STRING },
               location: { type: Type.STRING },
               description: { type: Type.STRING },
               emailDraft: { type: Type.STRING },
             },
-            required: ["name", "firm", "rating", "specialty", "contact", "location", "description", "emailDraft"],
+            required: ["name", "firm", "rating", "specialty", "contact", "email", "location", "description", "emailDraft"],
           },
         },
       },
     });
+
+    // Handle function calls
+    const functionCalls = response.functionCalls;
+    if (functionCalls) {
+      const results = [];
+      for (const call of functionCalls) {
+        if (call.name === "tavily_search") {
+          const { query } = call.args as { query: string };
+          const searchRes = await fetch("/api/search/tavily", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query }),
+          });
+          const searchData = await searchRes.json();
+          results.push({
+            functionResponse: {
+              name: "tavily_search",
+              response: { content: JSON.stringify(searchData) },
+              id: call.id
+            }
+          });
+        }
+      }
+
+      // Send the search results back to the model
+      const secondResponse = await ai.models.generateContent({
+        model,
+        contents: [
+          { role: "user", parts: [{ text: prompt }] },
+          { role: "model", parts: response.candidates[0].content.parts },
+          { role: "user", parts: results }
+        ],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                firm: { type: Type.STRING },
+                rating: { type: Type.NUMBER },
+                specialty: { type: Type.STRING },
+                contact: { type: Type.STRING },
+                email: { type: Type.STRING },
+                location: { type: Type.STRING },
+                description: { type: Type.STRING },
+                emailDraft: { type: Type.STRING },
+              },
+              required: ["name", "firm", "rating", "specialty", "contact", "email", "location", "description", "emailDraft"],
+            },
+          },
+        }
+      });
+
+      try {
+        return JSON.parse(secondResponse.text || "[]");
+      } catch (e) {
+        console.error("Failed to parse lawyers from second response", e);
+        return [];
+      }
+    }
 
     try {
       return JSON.parse(response.text || "[]");

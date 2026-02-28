@@ -10,7 +10,11 @@ export interface Task {
   id: number;
   project_id: number;
   title: string;
-  column: 'todo' | 'in-progress' | 'done';
+  status: 'pending' | 'active' | 'completed';
+  workstream: 'legal' | 'market' | 'admin';
+  executor: 'ai' | 'professional' | 'user';
+  executorName?: string;
+  connection?: string;
 }
 
 export interface Lawyer {
@@ -19,6 +23,7 @@ export interface Lawyer {
   rating: number;
   specialty: string;
   contact: string;
+  email: string;
   location: string;
   description: string;
   emailDraft: string;

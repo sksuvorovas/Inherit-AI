@@ -96,7 +96,11 @@ export default function LawyerSearch() {
               </div>
               <div className="flex items-start gap-2 text-zinc-400 text-sm">
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span className="break-all">{lawyer.contact}</span>
+                <span className="break-all">{lawyer.email}</span>
+              </div>
+              <div className="flex items-start gap-2 text-zinc-500 text-xs">
+                <span className="font-bold uppercase tracking-tighter">Phone:</span>
+                <span>{lawyer.contact}</span>
               </div>
               <p className="text-zinc-500 text-sm italic leading-relaxed">
                 "{lawyer.description}"
