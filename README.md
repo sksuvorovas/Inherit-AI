@@ -2,15 +2,27 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+📖 Inspiration
+The project was inspired by a harrowing personal experience: a co-founder’s struggle to settle his late parents' estate in Mexico. Facing a "perfect storm" of technical legal language barriers, opaque probate laws, and safety concerns in regions with cartel influence, he realized that heirs need more than just a lawyer—they need a trusted, objective digital guide.
 
-This contains everything you need to run your app locally.
+✨ Core Features
+Pro-Hunter: Uses AI-driven web search (Tavily) to vet and source English-speaking local lawyers in specific foreign jurisdictions.
+Contract Whisperer: Audits complex foreign sale agreements (e.g., Mexican Escrituras or Spanish Arras) to flag non-standard liabilities and "red flag" clauses in plain English.
+Listing Engine: Generates high-converting, localized real estate marketing materials tailored to regional portals.
+Command Center: A centralized Kanban-style dashboard that orchestrates the "Success Roadmap" from probate to final sale.
 
-View your app in AI Studio: https://ai.studio/apps/036cb374-b181-4383-a2a9-b8a3e7bf0522
+🛠️ Tech Stack
+LLM Engine: Google Gemini 1.5 Pro via Google AI Studio for high-context document reasoning (2M token window).
+Search Layer: Tavily API for real-time, grounded web retrieval of local laws and professional ratings.
+Document Processing: Google File API for secure handling of sensitive death certificates and deeds.
+Frontend: React-based dashboard with JSON-structured AI outputs.
 
-## Run Locally
+🚀 Getting Started
+Prerequisites
 
-**Prerequisites:**  Node.js
+**Prerequisites:**  Node.js (v18+) or Python (3.9+)
+Google AI Studio API Key
+Tavily API Key
 
 
 1. Install dependencies:
